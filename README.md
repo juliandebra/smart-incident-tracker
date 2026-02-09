@@ -42,9 +42,15 @@ A mobile-first incident management application built with **Ionic React**, **Cap
 - **Framework**: [Ionic React](https://ionicframework.com/docs/react)
 - **Runtime**: [Capacitor](https://capacitorjs.com/) (Native Mobile APIs)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/) + Ionic CSS Variables
+- **Analytics**: [Chart.js](https://www.chartjs.org/) for dashboard visualizations
+- **Maps**: [Leaflet](https://leafletjs.com/) for incident geolocation
 - **State Management**: [React Query](https://tanstack.com/query/latest) (Server state)
 - **Backend**: [Supabase](https://supabase.com/) (Auth, Postgres, RLS)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **UI Enhancements**: 
+  - Dynamic Light/Dark mode support
+  - Dual-View (List/Grid) incidents dashboard
+  - Integrated push notifications using `@capacitor/local-notifications`
 
 ---
 

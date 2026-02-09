@@ -19,15 +19,19 @@ import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
 
 /* Ionic Dark Mode */
-import '@ionic/react/css/palettes/dark.system.css';
+import '@ionic/react/css/palettes/dark.class.css';
 
 /* Custom styles */
 import '../styles/tailwind.css';
 import '../styles/ionic-overrides.css';
 
+import { useTheme } from '../hooks/useTheme';
+
 setupIonicReact();
 
 export function AppRoutes() {
+  useTheme(); // Initialize theme
+
   return (
     <IonApp>
       <IonReactRouter>

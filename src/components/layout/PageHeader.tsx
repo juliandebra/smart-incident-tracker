@@ -15,15 +15,15 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <IonHeader>
-      <IonToolbar>
+      <IonToolbar color="primary" style={{ '--color': '#ffffff' }}>
         {showBackButton && (
           <IonButtons slot="start">
-            <IonBackButton defaultHref={defaultHref} />
+            <IonBackButton defaultHref={defaultHref} className="text-white" style={{ '--color': '#ffffff' }} />
           </IonButtons>
         )}
-        <IonTitle>{title}</IonTitle>
+        <IonTitle style={{ color: '#ffffff' }}>{title}</IonTitle>
         {children && (
-          <IonButtons slot="end">
+          <IonButtons slot="end" className="text-white" style={{ '--color': '#ffffff' }}>
             {children}
           </IonButtons>
         )}

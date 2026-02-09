@@ -39,3 +39,11 @@ export interface UpdateIncidentPayload {
   assignee_id?: string;
 }
 
+export interface IncidentPhoto {
+  id: string;
+  incident_id: string;
+  file_path: string;
+  created_at: string;
+  url?: string;
+}
+

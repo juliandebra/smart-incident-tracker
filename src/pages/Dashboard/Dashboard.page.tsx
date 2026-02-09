@@ -30,6 +30,9 @@ import { IncidentPriorityBadge } from '../../components/incidents/IncidentPriori
 import { useIncidents } from '../../hooks/useIncidents';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import { formatRelativeTime } from '../../utils/date';
+import { StatusDonutChart } from '../../components/dashboard/StatusDonutChart';
+import { PriorityBarChart } from '../../components/dashboard/PriorityBarChart';
+import { IncidentTrendsChart } from '../../components/dashboard/IncidentTrendsChart';
 import type { Incident } from '../../models/incident.model';
 
 // Calculate distance between two coordinates in km (Haversine)
@@ -164,8 +167,7 @@ export function DashboardPage() {
               </IonCardContent>
             </IonCard>
           </div>
-
-          {/* Contextual Info Chips */}
+{/* Contextual Info Chips */}
           <div className="flex flex-wrap gap-2">
             {stats.criticalCount > 0 && (
               <IonChip color="danger">
@@ -230,6 +232,19 @@ export function DashboardPage() {
               </IonList>
             </IonCardContent>
           </IonCard>
+          {/* Analytics Section */}
+          <div className="space-y-4">
+            {incidents && incidents.length > 0 && (
+              <>
+                <StatusDonutChart incidents={incidents} />
+                <PriorityBarChart incidents={incidents} />
+                <IncidentTrendsChart incidents={incidents} />
+              </>
+            )}
+          </div>
+
+
+          
         </div>
       </IonContent>
     </IonPage>

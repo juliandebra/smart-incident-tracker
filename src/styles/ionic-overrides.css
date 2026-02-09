@@ -49,10 +49,10 @@
   --ion-tab-bar-color-selected: var(--ion-color-primary);
 }
 
-/* Dark mode overrides */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ion-card-background: #1e1e1e;
-    --ion-tab-bar-background: #1e1e1e;
-  }
+/* Dark mode overrides (respecting the manual class) */
+.ion-palette-dark {
+  --ion-card-background: #1e1e1e;
+  --ion-tab-bar-background: #1e1e1e;
+  --ion-tab-bar-color: #8a8a8a;
+  --ion-tab-bar-color-selected: var(--ion-color-primary);
 }

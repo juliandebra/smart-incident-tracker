@@ -1,10 +1,33 @@
+import { useState, useEffect } from 'react';
 import { IonPage, IonContent, IonList, IonItem, IonLabel, IonIcon, IonToggle } from '@ionic/react';
 import { personCircleOutline, notificationsOutline, colorPaletteOutline, informationCircleOutline } from 'ionicons/icons';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { useAuth } from '../../hooks/useAuth';
+import { settingsService, AppTheme } from '../../services/settings.service';
+import { notificationService } from '../../services/notification.service';
+import { useTheme } from '../../hooks/useTheme';
 
 export function SettingsPage() {
   const { user } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+  useEffect(() => {
+    setNotificationsEnabled(settingsService.isNotificationsEnabled());
+  }, []);
+
+  const handleNotificationsToggle = async (enabled: boolean) => {
+    if (enabled) {
+      const granted = await notificationService.requestPermissions();
+      if (granted) {
+        settingsService.setNotificationsEnabled(true);
+        setNotificationsEnabled(true);
+      }
+    } else {
+      settingsService.setNotificationsEnabled(false);
+      setNotificationsEnabled(false);
+    }
+  };
 
   return (
     <IonPage>
@@ -25,13 +48,21 @@ export function SettingsPage() {
           <IonItem>
             <IonIcon icon={notificationsOutline} slot="start" />
             <IonLabel>Push Notifications</IonLabel>
-            <IonToggle slot="end" />
+            <IonToggle 
+              slot="end" 
+              checked={notificationsEnabled}
+              onIonChange={(e) => handleNotificationsToggle(e.detail.checked)}
+            />
           </IonItem>
 
           <IonItem>
             <IonIcon icon={colorPaletteOutline} slot="start" />
             <IonLabel>Dark Mode</IonLabel>
-            <IonToggle slot="end" />
+            <IonToggle 
+              slot="end" 
+              checked={theme === 'dark'}
+              onIonChange={(e) => setTheme(e.detail.checked ? 'dark' : 'light')}
+            />
           </IonItem>
         </IonList>
 
@@ -48,3 +79,4 @@ export function SettingsPage() {
     </IonPage>
   );
 }
+

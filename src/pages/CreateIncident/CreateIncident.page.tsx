@@ -13,13 +13,20 @@ import {
   IonIcon,
   IonNote,
   IonSpinner,
-  IonText
+  IonText,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonImg,
+  IonThumbnail
 } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
-import { locationOutline, closeCircleOutline } from 'ionicons/icons';
+import { locationOutline, closeCircleOutline, cameraOutline, trashOutline } from 'ionicons/icons';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { useCreateIncident } from '../../hooks/useCreateIncident';
 import { useGeolocation } from '../../hooks/useGeolocation';
+import { incidentPhotoService } from '../../services/incidentPhotoService';
+import { IncidentMap } from '../../components/incidents/IncidentMap';
 import { APP_ROUTES } from '../../utils/constants';
 import type { IncidentPriority } from '../../models/incident.model';
 
@@ -32,20 +39,56 @@ export function CreateIncidentPage() {
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<IncidentPriority>('medium');
   const [location, setLocation] = useState('');
+  const [selectedPhotos, setSelectedPhotos] = useState<string[]>([]); // Array of Base64 strings
+  const [isPhotoLoading, setIsPhotoLoading] = useState(false);
+  const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
+
+  const handleAddPhoto = async () => {
+    try {
+      setIsPhotoLoading(true);
+      const photo = await incidentPhotoService.takePhoto();
+      if (photo.base64String) {
+        setSelectedPhotos(prev => [...prev, photo.base64String!]);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+    } finally {
+      setIsPhotoLoading(false);
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    setSelectedPhotos(prev => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async () => {
     if (!title.trim() || !description.trim()) return;
 
-    await createMutation.mutateAsync({
-      title: title.trim(),
-      description: description.trim(),
-      priority,
-      location: location.trim() || undefined,
-      latitude: geo.latitude || undefined,
-      longitude: geo.longitude || undefined,
-    });
+    try {
+      const incident = await createMutation.mutateAsync({
+        title: title.trim(),
+        description: description.trim(),
+        priority,
+        location: location.trim() || undefined,
+        latitude: geo.latitude || undefined,
+        longitude: geo.longitude || undefined,
+      });
 
-    history.push(APP_ROUTES.INCIDENTS);
+      // If we have photos, upload them now
+      if (selectedPhotos.length > 0) {
+        setIsUploadingPhotos(true);
+        // Upload one by one to avoid overwhelming memory/connection
+        for (const photoBase64 of selectedPhotos) {
+          await incidentPhotoService.uploadPhotoData(incident.result.id, photoBase64);
+        }
+      }
+
+      history.push(APP_ROUTES.INCIDENTS);
+    } catch (error: any) {
+      alert(`Error creating incident: ${error.message}`);
+    } finally {
+      setIsUploadingPhotos(false);
+    }
   };
 
   const handleUseLocation = async () => {
@@ -53,6 +96,7 @@ export function CreateIncidentPage() {
   };
 
   const isValid = title.trim() && description.trim();
+  const isPending = createMutation.isPending || isUploadingPhotos;
 
   return (
     <IonPage>
@@ -148,18 +192,90 @@ export function CreateIncidentPage() {
               )}
             </IonButton>
           </IonItem>
+
+          {/* Map Section for Creation */}
+          {geo.latitude && geo.longitude && (
+            <div className="px-4 mt-2 mb-4">
+              <IncidentMap 
+                latitude={geo.latitude} 
+                longitude={geo.longitude} 
+                height="180px"
+              />
+            </div>
+          )}
+
+
+          {/* Photos Section */}
+          <div className="mt-4 px-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium m-0">Photographic Evidence</h3>
+              <IonButton 
+                size="small" 
+                fill="outline" 
+                onClick={handleAddPhoto}
+                disabled={isPhotoLoading || isUploadingPhotos}
+              >
+                {isPhotoLoading ? (
+                  <IonSpinner name="crescent" className="h-4 w-4 mr-2" />
+                ) : (
+                  <IonIcon icon={cameraOutline} slot="start" />
+                )}
+                {selectedPhotos.length > 0 ? 'Add another' : 'Add photo'}
+              </IonButton>
+            </div>
+
+            {selectedPhotos.length > 0 && (
+              <IonGrid className="p-0">
+                <IonRow>
+                  {selectedPhotos.map((photo, index) => (
+                    <IonCol size="4" key={index}>
+                      <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 shadow-sm border border-gray-200">
+                        <IonImg 
+                          src={`data:image/jpeg;base64,${photo}`} 
+                          className="w-full h-full object-cover"
+                        />
+                        <IonButton
+                          className="absolute -top-1 -right-1"
+                          color="danger"
+                          size="small"
+                          fill="clear"
+                          onClick={() => removePhoto(index)}
+                        >
+                          <IonIcon icon={trashOutline} slot="icon-only" className="text-lg bg-white rounded-full" />
+                        </IonButton>
+                      </div>
+                    </IonCol>
+                  ))}
+                </IonRow>
+              </IonGrid>
+            )}
+            
+            {selectedPhotos.length === 0 && (
+              <IonNote className="text-xs italic">Optional: you can add photos now or later.</IonNote>
+            )}
+          </div>
         </IonList>
 
-        <div className="mt-6 px-4">
+        <div className="mt-8 px-4 pb-8">
           <IonButton 
             expand="block" 
             onClick={handleSubmit}
-            disabled={!isValid || createMutation.isPending}
+            disabled={!isValid || isPending}
           >
-            {createMutation.isPending ? 'Creating...' : 'Create Incident'}
+            {isUploadingPhotos ? (
+              <>
+                <IonSpinner name="crescent" className="h-5 w-5 mr-3" />
+                Uploading photos...
+              </>
+            ) : createMutation.isPending ? (
+              'Creating Incident...'
+            ) : (
+              'Create Incident'
+            )}
           </IonButton>
         </div>
       </IonContent>
     </IonPage>
   );
 }
+
